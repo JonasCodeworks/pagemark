@@ -1,12 +1,19 @@
 {
   "manifest_version": 3,
-  "name": "Pagemark",
-  "version": "0.0.1",
-  "description": "Bookmark to a specific portion of a webpage",
   "icons": {
     "16": "images/icon-16.png",
     "32": "images/icon-32.png",
     "48": "images/icon-48.png",
     "128": "images/icon-128.png"
-  }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Click to open panel"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "permissions": ["storage"]
 }

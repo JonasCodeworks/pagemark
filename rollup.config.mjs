@@ -4,7 +4,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import { chromeExtension, simpleReloader } from "rollup-plugin-chrome-extension"
 
 export default {
-	input: "src/manifest.json",
+	input: ["src/manifest.json", "src/sidepanel.html"],
 	output: {
 		dir: 'dist',
 		format: 'esm'

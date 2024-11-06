@@ -1,10 +1,10 @@
 {
-  "name": "pagemark",
+  "name": "Pagemark",
   "version": "0.0.1",
   "description": "A chrome extension to bookmark specific portions webpages",
   "main": "index.js",
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c && node fix-rollup.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "codeworks@artyfakt.org",
