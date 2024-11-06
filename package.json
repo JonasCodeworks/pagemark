@@ -1,0 +1,18 @@
+{
+  "name": "pagemark",
+  "version": "0.0.1",
+  "description": "A chrome extension to bookmark specific portions webpages",
+  "main": "index.js",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "codeworks@artyfakt.org",
+  "license": "None",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "rollup": "^4.24.4",
+    "rollup-plugin-chrome-extension": "^3.6.12"
+  }
+}
