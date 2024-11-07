@@ -10,10 +10,14 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Click to open panel"
+    "default_title": "Click to open pagemark"
   },
   "side_panel": {
     "default_path": "sidepanel.html"
   },
-  "permissions": ["storage"]
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ]
 }
