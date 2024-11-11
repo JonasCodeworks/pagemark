@@ -1,51 +1,3 @@
-/* // placeholder for adding/opening/highlighting/deleting a saved reference
-const injector = document.querySelector("#inject-script")
-injector.addEventListener("click", () => {
-  console.log("Script Injector clicked")
-  chrome.tabs.query({active: true, lastFocusedWindow: true})
-  .then((activeTab) => {
-    chrome.tabs.sendMessage(activeTab[0].id, {type: "NEW_SELECTOR"}).then(response => console.log("Response: ", response))
-  })
-}) */
-
-// RECEIVE MESSAGES FROM OTHER COMPONENTS
-chrome.runtime.onMessage.addListener(async (request, sender, response) => {
-  if (request.type === "REF_ADDED") {
-    console.log("Request: ", request)
-    addRef(request.payload)
-  }
-  if (request.type === "REF_REMOVED") {
-    console.log("Request: ", request)
-    removeRef(request.payload)
-  }
-})
-
-function addRef (ref) {
-  const parser = new DOMParser()
-  const newRef = parser.parseFromString(
-    `<li id="${ref.id}">
-      ${ref.text}
-      <button class="rm-ref">Delete</button>
-      <button class="hl-ref">Highlight</button>
-    </li>`
-    , "text/html")
-  newRef.querySelector(".rm-ref").addEventListener("click", () => {
-    chrome.runtime.sendMessage({type: "REMOVE_REF", payload: ref.id})
-  })
-  newRef.querySelector(".hl-ref").addEventListener("click", () => {
-    chrome.runtime.sendMessage({type: "HIGHLIGHT_REF", payload: ref.id})
-  })
-  document.querySelector("#ref-list").append(newRef.querySelector("li"))
-}
-
-function removeRef (ref) {
-  const element = document.getElementById(ref.id)
-  if (element) element.remove()
-}
-
-
-// * * * * * * * * * * * * * * *
-
 // INITIAL SETUP
 // - triger setup function once every time panel is opened
 // - create event listener for new reference button
@@ -104,7 +56,7 @@ async function createRef () {
   console.log("Response from background: ", response)
   if (!response.error) {
     const newRef = response.data
-    renderRefs(newRef)
+    renderRefs(newRef, "featured")
   } else {
     // TODO: some error handling
   }
@@ -123,8 +75,35 @@ async function createRef () {
 // RENDER FUNCTIONS
 
 // Add reference
-function renderRefs (refs) {
+function renderRefs (refs, target) {
+
   console.log("Refs to render: ", refs)
+  const refList = document.querySelector("#ref-list")
+  const featList = document.querySelector("#feat-list")
+  for (let ref of refs) {
+    const li = parseHTML(`
+      <li id="${ref.id}">
+        <div class="card-top">
+          <div class="card-label"></div>
+          <div class="card-text">${ref.text}</div>
+        </div>
+        <div class="card-bottom">
+          <button>...</button>
+          <ul>
+            <li>${ref.title}</li>
+            <li>${ref.source}</li>
+            <li>${new Date(ref.timestamp).toLocaleString()}</li>
+          </ul>
+        </div>
+      </li>
+    `)
+    if (target === "featured") {
+      featList.append(li)
+    } else {
+      refList.append(li)
+    }
+  }
+
 }
 
 // Remove reference
@@ -140,4 +119,21 @@ function featureSource (source) {
 // Feature references of current url
 function featureSourceRefs (refIds) {
   console.log("Featured source refs: ", refIds)
+  const refList = document.querySelector("#ref-list")
+  const featList = document.querySelector("#feat-list")
+  const unfeatRefs = featList.querySelectorAll(":scope > li")
+  for (let li of unfeatRefs) {
+    refList.append(li)
+  }
+  const featRefs = refList.querySelectorAll(":scope > li")
+  for (let li of featRefs) {
+    if (refIds.includes(li.id)) featList.append(li)
+  }
+}
+
+// Parser that takes string and returns HTML elements
+function parseHTML (string) {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(string, "text/html")
+  return doc.body.firstChild
 }

@@ -1,0 +1,95 @@
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+h2 {
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px #EEF2F9 solid;
+  font-size: 14px;
+}
+
+.list {
+  list-style-type: none;
+}
+
+.list > li {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.card-top {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+.card-label {
+  background-color: #FFFFA9;
+  min-width: 7px;
+  width: 7px;
+  border-radius: 3.5px;
+}
+
+.card-bottom {
+  display: flex;
+  background-color: #EEF2F9;
+  flex-direction: column-reverse;
+  color: gray;
+}
+
+.card-bottom ul {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  list-style-type: none;
+}
+
+.card-bottom button {
+  background: white;
+  border: none;
+  border-bottom: 1px #EEF2F9 solid;
+  padding-bottom: 0.5rem;
+}
+
+.card-bottom button:hover {
+  background: #EEF2F9;
+}
+
+.card-bottom button:focus {
+  background: #EEF2F9;
+}
+
+.card-bottom button:focus ~ ul {
+  height: initial;
+}
+
+.card-bottom li {
+  border-bottom: 1px grey solid;
+  padding: 0.75rem 1.5rem;
+  font-size: 12px;
+}
+
+.card-bottom li:last-child {
+  border-bottom: none;
+}
+
+#new-ref {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 50px;
+  border-top-right-radius: 16px;
+  border: none;
+  font-size: 16px;
+  padding: 0 1.5rem;
+}

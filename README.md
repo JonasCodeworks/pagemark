@@ -15,4 +15,4 @@ In order for npm package optimal-select to be correctly bundled by Rollup, the p
 - [ ] guard against xss (from within selected text)
 - [ ] one custom highlight per ref, so that refs can overlap
 - [ ] deactivate add reference button when active tab is on restricted chrome: page
-- [ ] handle situations where one of the extension components is missing (side panel closed, tab shows restricted chrome: page)
+- [ ] handle situations where one of the extension components is missing (side panel closed, tab shows restricted chrome: page). Maybe a function that takes the request as an argument and tests whether the receiving component is there before it sends the request?

@@ -1,16 +1,3 @@
-/* chrome.action.onClicked.addListener(async (tab) => {
-  // open side panel
-  chrome.sidePanel.open({windowId: tab.windowId})
-  // TODO: load refs from storage when side panel is opened
-
-  // Push content script to tab
-  chrome.scripting.executeScript({
-    target: {tabId: tab.id},
-    files: ["scripts/save.js"]
-  })
-}) */
-
-
 /* // RECEIVE MESSAGES FROM OTHER COMPONENTS
 chrome.runtime.onMessage.addListener(async (request, sender, response) => {
   if (request.type === "NEW_SELECTOR") {
@@ -120,9 +107,9 @@ chrome.runtime.onMessage.addListener(asyncWrapper(async (request, sender) => {
       const source = urlToSource(url)
       const id = generateUuid()
       const timestamp = Date.now()
-      const newRef = {id, timestamp, title, source, text: response.data.exact, selectors: response.data}
+      const newRef = {id, timestamp, title, source, text: response.data[0].exact, selectors: response.data} // TODO: if multiple selectors, concatenate their text
       await storage.set({[id]: newRef}) // TODO: get confirmation from storage
-      res.data = newRef
+      res.data = [newRef]
       chrome.tabs.sendMessage(tab.id, {type: "REF_ADDED", data: [newRef]})
     } else {
       res.error = true
@@ -225,6 +212,7 @@ async function findActiveTab () {
   return activeTab[0]
 }
 
+// Get all references and filter by source
 async function getRefsForSource (tab) {
     const tabSource = urlToSource(tab.url)
     const refs = await storage.get(null)
