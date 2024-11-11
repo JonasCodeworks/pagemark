@@ -1,0 +1,7 @@
+::highlight(pm-highlight) {
+  background-color: rgba(255,255,0,0.5)
+}
+
+::highlight(pm-focus) {
+  background-color: rgba(255,0,0,0.5)
+}

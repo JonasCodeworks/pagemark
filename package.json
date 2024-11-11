@@ -1,7 +1,7 @@
 {
   "name": "pagemark",
   "version": "0.0.1",
-  "description": "A chrome extension to bookmark specific portions webpages",
+  "description": "A chrome extension to bookmark specific portions of webpages",
   "main": "index.js",
   "scripts": {
     "build": "rollup -c && node fix-rollup.js",

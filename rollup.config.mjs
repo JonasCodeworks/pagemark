@@ -6,9 +6,7 @@ import copy from "rollup-plugin-copy"
 export default {
 	input: [
 		"src/manifest.json",
-		"src/sidepanel.html",
-		"src/scripts/save.js",
-		"src/scripts/highlight.js"
+		"src/sidepanel.html"
 	],
 	output: {
 		dir: 'dist',
@@ -19,7 +17,7 @@ export default {
 		simpleReloader(),
     resolve(),
     commonjs(),
-		//copy({targets:[{src: "src/scripts", dest: "dist"}]})
+		//copy({targets:[{src: "src/sidepanel.html", dest: "dist"},{src: "src/sidepanel.js", dest: "dist"}]})
   ]
 }
 

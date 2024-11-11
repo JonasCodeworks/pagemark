@@ -56,8 +56,16 @@ chrome.runtime.onMessage.addListener(async (request, sender, response) => {
 
 // * * * * * * * * * * * * * * *
 
+// SETUP ON PAGELOAD
+
+  console.log("Script executed on pageload")
+  chrome.runtime.sendMessage({type: "PAGE_LOADED"})
+
+
+// * * * * * * * * * * * * * * *
+
 // LISTEN FOR INCOMING EVENTS
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   // "REF_ADDED" (from background)
   // - receive one (or multiple) refs
@@ -65,10 +73,8 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   // - for each, match the selector(s) to range(s)
   // - add ref id as key and range(s) as value to the highlights object
   // - add range(s) to the custom highlight
-  // - after iteration, respond with success message
   if (request.type === "REF_ADDED") {
     const refs = request.data
-    const res = {}
     for (let ref of refs) {
       matchSelectors(ref.selectors)
       .then((ranges) => {
@@ -78,7 +84,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
         }
       })
     }
-    sendResponse(res) // TODO: improve this, right now it only sends an empty object
   }
 
   // "REF_REMOVED" (from background)
@@ -89,24 +94,21 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   // - also remove it from the custom highlight
   // - proceed by checking if the highlight was currently focussed
   // - if yes, remove it from the focus variable and from custom highlight
-  // - after iteration, respond with success message
-  if (required.type === "REF_REMOVED") {
+  if (request.type === "REF_REMOVED") {
     const refIds = request.data
-    const res = {}
     for (let refId of refIds) {
       if (Object.hasOwn(highlights, refId)) {
         const ranges = highlights[refId]
         for (let range in ranges) {
           customHighlight.delete(range)
         }
-        delete hightlights[refId]
+        delete highlights[refId]
       }
       if (focus === refId) {
         customFocus.clear()
         focus = null
       }
     }
-    sendResponse(res) // TODO: improve this, right now it only sends an empty object
   }
 
   // "FOCUS_HIGHLIGHT" (from background)
@@ -114,10 +116,8 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   // - check if id exists as key on the highlights object
   // - if yes, set focus variable to that id
   // - iterate through range(s) and add them to custom highlight
-  // - respond with success message
   if (request.type === "FOCUS_HIGHLIGHT") {
     const refId = request.data
-    const res = {}
     if (Object.hasOwn(highlights, refId)) {
       focus = refId
       const ranges = highlights[refId]
@@ -125,16 +125,15 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
         customFocus.add(range)
       }
     }
-    sendResponse(res) // TODO: improve this, right now it only sends an empty object
   }
 
   // "NEW_SELECTOR" (from background)
   // - check if a selection exists
   // - if no, respond with error message
-  // - if yes, create a selector for the current selection
-  // - respond with the new selector
+  // - if yes, create array of selector(s) for the current selection
+  // - respond with the new selector(s)
 
-  if (request.type === "NEW_SELECTOR") {
+  if (request.type === "NEW_SELECTORS") {
     describeSelection()
       .then((selectors) => {
         const res = {}
@@ -144,9 +143,11 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
         } else {
           res.data = selectors
         }
-        sendResponse(res)
+        sendResponse(res) // TODO: respond with error, if something goes wrong
       })
-    } // TODO: respond with error, if something goes wrong
+    return true // this is needed to enable async messaging inside chrome extensions
+    }
+
 })
 
 // * * * * * * * * * * * * * * *
