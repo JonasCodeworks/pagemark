@@ -18,9 +18,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // - receive info about new tab and ids of refs to feature
   // - rearrange refs so that refs for current url are featured on top
   if (request.type === "SOURCE_CHANGED") {
-    const { source, refIds } = request.data
+    const { source, refIds, focus } = request.data
     featureSource(source)
     featureSourceRefs(refIds)
+    if (focus) {
+      setFocus(focus)
+    } else {
+      clearFocus()
+    }
   }
 
 })
@@ -64,11 +69,30 @@ async function createRef () {
 
 // "SELECT_REF" (to background)
 // - request selection of ref
+async function selectRef (ref) {
+  console.log("ID " + ref.id + "selected in side panel")
+  const response = await chrome.runtime.sendMessage({type: "SELECT_REF", data: ref})
+  if (!response.error) {
+    console.log("Response from background: ", response)
+    setFocus(ref.id)
+  } else {
+    // TODO: error handling
+  }
+}
 
 // "REMOVE_REF" (to background)
 // - request removal of ref
 // - wait for response with removed ref's id
 // - remove element with that id from list
+async function removeRef (ref) {
+  console.log("ID " + ref.id + "removed in side panel")
+  const response = await chrome.runtime.sendMessage({type: "REMOVE_REF", data: ref.id})
+  if (!response.error) {
+    unrenderRefs(ref.id)
+  } else {
+    // TODO: error handling
+  }
+}
 
 // * * * * * * * * * * * * * * *
 
@@ -90,13 +114,16 @@ function renderRefs (refs, target) {
         <div class="card-bottom">
           <button>...</button>
           <ul>
-            <li>${ref.title}</li>
-            <li>${ref.source}</li>
-            <li>${new Date(ref.timestamp).toLocaleString()}</li>
+            <li>Title: ${ref.title}</li>
+            <li>Source: ${ref.source}</li>
+            <li>Created: ${new Date(ref.timestamp).toLocaleString()}</li>
+            <li class="card-menu"><button class="rm-ref">Remove</button><button class="rm-share" disabled>Share</button><button class="rm-open" disabled>Open in new tab</button></li>
           </ul>
         </div>
       </li>
     `)
+    li.querySelector(".card-top").addEventListener("click", () => selectRef(ref))
+    li.querySelector(".rm-ref").addEventListener("click", () => removeRef(ref))
     if (target === "featured") {
       featList.append(li)
     } else {
@@ -107,8 +134,10 @@ function renderRefs (refs, target) {
 }
 
 // Remove reference
-function unrenderRefs (refIds) {
-  console.log("RefIds to remove: ", refIds)
+function unrenderRefs (refId) {
+  console.log("RefIds to remove: ", refId)
+  const li = document.getElementById(refId)
+  li.remove()
 }
 
 // Feature current url in it's own section
@@ -136,4 +165,16 @@ function parseHTML (string) {
   const parser = new DOMParser()
   const doc = parser.parseFromString(string, "text/html")
   return doc.body.firstChild
+}
+
+// Set focus in side panel
+function setFocus (id) {
+  clearFocus()
+  document.getElementById(id).classList.add("focussed")
+}
+
+// Clear focus in side panel
+function clearFocus () {
+  const prevFocussed = document.querySelector(".focussed")
+  if (prevFocussed) prevFocussed.classList.remove("focussed")
 }

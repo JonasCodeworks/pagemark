@@ -27,10 +27,15 @@ h2 {
   font-size: 14px;
 }
 
+.list > li.focussed .card-label {
+  background-color: #C5FDC8;
+}
+
 .card-top {
   display: flex;
   gap: 1rem;
   padding: 1.5rem 1.5rem 1rem;
+  cursor: default;
 }
 
 .card-label {
@@ -42,9 +47,14 @@ h2 {
 
 .card-bottom {
   display: flex;
-  background-color: #EEF2F9;
+  background-color: white;
   flex-direction: column-reverse;
-  color: gray;
+  color: #646464;
+}
+
+.card-bottom:hover {
+  background-color: #FAFAFA;
+  box-shadow: inset 1px -1px 1px rgba(0, 0, 0, 0.05), inset -1px -1px 1px rgba(0, 0, 0, 0.05), inset 1px 1px 1px rgba(0, 0, 0, 0.05), inset -1px 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .card-bottom ul {
@@ -54,27 +64,34 @@ h2 {
   list-style-type: none;
 }
 
-.card-bottom button {
-  background: white;
+.card-bottom > button {
+  display: block;
+  background-color: transparent;
   border: none;
   border-bottom: 1px #EEF2F9 solid;
   padding-bottom: 0.5rem;
 }
 
-.card-bottom button:hover {
-  background: #EEF2F9;
+.card-bottom > button:focus {
+  background: #FAFAFA;
+  border-bottom: none;
+  box-shadow: inset 1px -1px 1px rgba(0, 0, 0, 0.05), inset -1px -1px 1px rgba(0, 0, 0, 0.05);
 }
 
-.card-bottom button:focus {
-  background: #EEF2F9;
-}
-
-.card-bottom button:focus ~ ul {
+.card-bottom > button:focus ~ ul {
   height: initial;
+  background-color: #FAFAFA;
+  box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.05), inset -1px 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.card-bottom ul:hover {
+  height: initial;
+  background-color: #EEF2F9;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.25);
 }
 
 .card-bottom li {
-  border-bottom: 1px grey solid;
+  border-bottom: 1px #EFEFEF solid;
   padding: 0.75rem 1.5rem;
   font-size: 12px;
 }
@@ -83,13 +100,33 @@ h2 {
   border-bottom: none;
 }
 
+.card-bottom li.card-menu {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  padding-top: 1.5rem;
+  gap: 1rem;
+}
+
+.card-menu button {
+  padding: 0.5rem;
+  width: 100%;
+  border: none;
+  background-color: #EFEFEF;
+  border-radius: 7px;
+  font-size: 12px;
+  color: #646464;
+}
+
 #new-ref {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  height: 50px;
-  border-top-right-radius: 16px;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  height: 40px;
+  border-radius: 7px;
   border: none;
   font-size: 16px;
-  padding: 0 1.5rem;
+  padding: 0 1rem;
+  color: #646464;
+  background-color: #EFEFEF;
 }

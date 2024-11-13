@@ -1,41 +1,5 @@
-/* // RECEIVE MESSAGES FROM OTHER COMPONENTS
-chrome.runtime.onMessage.addListener(async (request, sender, response) => {
-  if (request.type === "NEW_SELECTOR") {
-    const { title, url } = sender.tab
-    const sourceUrl = new URL(url)
-    const source = sourceUrl.hostname + sourceUrl.pathname
-    const id = uuid();
-    const timestamp = Date.now()
-    const newReference = {id, timestamp, title, source, text: request.payload.exact, selector: request.payload}
-    await storage.set({[id]: newReference})
-    storage.get(null).then(result => console.log(result))
-  }
-  if (request.type === "REMOVE_REF") {
-    console.log("Request to remove ref: ", request.payload)
-    await storage.remove(request.payload)
-    storage.get(null).then(result => console.log(result))
-  }
-  if (request.type === "HIGHLIGHT_REF") {
-    console.log("Request to highlight ref: ", request.payload)
-    const selectedRef = await storage.get(request.payload)
-    console.log("Selected Ref: ", selectedRef)
-    const activeTab = await chrome.tabs.query({active: true, lastFocusedWindow: true})
-    if (activeTab[0].url) {
-      const activeUrl = new URL(activeTab[0].url)
-      const activeSource = activeUrl.hostname + activeUrl.pathname
-      // TODO: find a better solution, like 1) check if tab with requested source is open and use this 2) if not create new tab
-      if (activeSource === selectedRef[request.payload].source) {
-        console.log("Tab currently at same url as selected ref")
-        console.log(activeTab)
-      } else {
-        await chrome.tabs.update({url: `https://${selectedRef[request.payload].source}`})
-      }
-      chrome.tabs.sendMessage(activeTab[0].id, {type: "SHOW_HIGHLIGHT", payload: selectedRef[request.payload].selector})
-    }
-  }
-})
 
-// LISTEN TO UPDATES OF STORAGE
+/*// LISTEN TO UPDATES OF STORAGE
 chrome.storage.onChanged.addListener(async (changes) => {
   console.log("Changes in storage: ", changes)
   // iterate over changes
@@ -125,7 +89,16 @@ chrome.runtime.onMessage.addListener(asyncWrapper(async (request, sender) => {
   // - make sure the tab has received and processed all refs for it's url
   // - request tab to focus on selected highlight
   if (request.type === "SELECT_REF") {
-
+    const { id, source } = request.data
+    const res = {}
+    const tab = await findActiveTab()
+    const tabSource = urlToSource(tab.url)
+    if (tabSource === source) {
+      chrome.tabs.sendMessage(tab.id, {type: "FOCUS_HIGHLIGHT", data: id})
+    } else {
+      chrome.tabs.sendMessage(tab.id, {type: "CHANGE_SOURCE", data: source})
+    }
+    return res
   }
 
   // "REMOVE_REF" (from side panel)
@@ -136,7 +109,22 @@ chrome.runtime.onMessage.addListener(asyncWrapper(async (request, sender) => {
   // - request removal of ref from tab
   // - wait for confirmation by tab
   if (request.type === "REMOVE_REF") {
-
+    const id = request.data
+    const ref = await storage.get(id)
+    const res = {}
+    const tab = await findActiveTab()
+    const tabSource = urlToSource(tab.url)
+    if (ref) {
+      await storage.remove(id)
+      if (ref[id].source === tabSource) {
+        console.log("Removed ref is visible in active tab")
+        chrome.tabs.sendMessage(tab.id, {type: "REF_REMOVED", data: [id]})
+      }
+    } else {
+      res.error = true
+      res.msg = "Reference doesn't exist in storage"
+    }
+    return res
   }
 
   // "PAGE_LOADED" (from tab)
@@ -149,7 +137,7 @@ chrome.runtime.onMessage.addListener(asyncWrapper(async (request, sender) => {
       console.log("Sender object: ", sender)
       const { source, refIds, refs } = await getRefsForSource(sender.tab)
       await chrome.tabs.sendMessage(sender.tab.id, {type: "REF_ADDED", data: refs})
-      await chrome.runtime.sendMessage({type: "SOURCE_CHANGED", data: {source, refIds}})
+      await chrome.runtime.sendMessage({type: "SOURCE_CHANGED", data: {source, refIds, focus: null}})
     }
     return // resolve the asyncWrapper's promise
   }
@@ -163,7 +151,8 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     console.log("onActivated: ", activeInfo, tab)
     const { source, refIds, refs } = await getRefsForSource(tab)
     await chrome.tabs.sendMessage(tab.id, {type: "REF_ADDED", data: refs})
-    await chrome.runtime.sendMessage({type: "SOURCE_CHANGED", data: {source, refIds}})
+    const focus = await chrome.tabs.sendMessage(tab.id, {type: "GET_FOCUS"})
+    await chrome.runtime.sendMessage({type: "SOURCE_CHANGED", data: {source, refIds, focus}})
   }
 })
 

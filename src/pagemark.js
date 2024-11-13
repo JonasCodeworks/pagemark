@@ -21,6 +21,12 @@ CSS.highlights.set("pm-focus", customFocus)
 // LISTEN FOR INCOMING EVENTS
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
+    // "CHANGE_SOURCE" (from background)
+    // - navigate tab to new url
+    if (request.type === "CHANGE_SOURCE") {
+      location.assign(request.data)
+    }
+
   // "REF_ADDED" (from background)
   // - receive one (or multiple) refs
   // - iterate over refs
@@ -32,9 +38,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     for (let ref of refs) {
       matchSelectors(ref.selectors)
       .then((ranges) => {
-        highlights[ref.id] = ranges
-        for (let range of ranges) {
-          customHighlight.add(range)
+        if (!Object.hasOwn(highlights, ref.id)) {
+          highlights[ref.id] = ranges
+          for (let range of ranges) {
+            customHighlight.add(range)
+          }
         }
       })
     }
@@ -50,11 +58,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // - if yes, remove it from the focus variable and from custom highlight
   if (request.type === "REF_REMOVED") {
     const refIds = request.data
+    console.log(refIds)
+    console.log("Content of customHighlight before delete:")
+    for (let entry of customHighlight.entries()) {
+      console.log(entry)
+    }
     for (let refId of refIds) {
       if (Object.hasOwn(highlights, refId)) {
+        console.log("Object has refId: ", refId)
         const ranges = highlights[refId]
-        for (let range in ranges) {
+        console.log("Object has these ranges: ", ranges)
+        for (let range of ranges) {
           customHighlight.delete(range)
+          console.log("Content of customHighlight after delete:")
+          for (let entry of customHighlight.entries()) {
+            console.log(entry)
+          }
         }
         delete highlights[refId]
       }
@@ -73,11 +92,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "FOCUS_HIGHLIGHT") {
     const refId = request.data
     if (Object.hasOwn(highlights, refId)) {
+      customFocus.clear()
       focus = refId
       const ranges = highlights[refId]
       for (let range of ranges) {
         customFocus.add(range)
       }
+      const { y } = ranges[0].getBoundingClientRect()
+      const bufferedY = y - (window.innerHeight / 2)
+      window.scrollBy({top: bufferedY, left: 0, behavior: "smooth"})
     }
   }
 
@@ -86,7 +109,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // - if no, respond with error message
   // - if yes, create array of selector(s) for the current selection
   // - respond with the new selector(s)
-
   if (request.type === "NEW_SELECTORS") {
     describeSelection()
       .then((selectors) => {
@@ -102,7 +124,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true // this is needed to enable async messaging inside chrome extensions
     }
 
+    // "GET_FOCUS" (from background)
+    // - send current value of focus variable
+    if (request.type === "GET_FOCUS") {
+      sendResponse(focus)
+    }
+
 })
+
 
 // * * * * * * * * * * * * * * *
 
@@ -133,3 +162,5 @@ async function matchSelectors (selectors) {
   }
   return matchList
 }
+
+// Scroll highlight into view

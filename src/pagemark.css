@@ -1,7 +1,7 @@
 ::highlight(pm-highlight) {
-  background-color: rgba(255,255,0,0.5)
+  background-color: #FFFFA9;
 }
 
 ::highlight(pm-focus) {
-  background-color: rgba(255,0,0,0.5)
+  background-color: #C5FDC8;
 }
